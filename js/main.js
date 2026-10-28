@@ -65,8 +65,8 @@ const projects = {
   creative: [
     {
       title: "Match Report (2026)",
-      subtitle: "Visualizing World Cup Data",
-      text: "A self-initiated (long term) exercise in translating FIFA’s World Cup match data into a unique digital experience that reflects their analog origins. The latest iteration culls 2026 match info from various online sources, leveraging Data. Built using React and Webflow.",
+      subtitle: "World Cup match data",
+      text: "A side project that turns World Cup match data into something that looks like the old printed match reports. This version uses 2026 match data from a few online sources. Built with React and Webflow.",
       media: [
         { video: "images/match-report-2026.mp4", alt: "Match Report 2026 in use" },
         { src: "images/match-report-2026-mobile.webp", alt: "Match Report on two phones: match overview for Brazil vs Norway and England’s starting line-up" },
@@ -86,8 +86,8 @@ const projects = {
     },
     {
       title: "Circle Animations",
-      subtitle: "A collection of 12 generative studies",
-      text: "Twelve looping studies in dots and circles: orbits, ripples, breathing grids and golden-angle spirals. Each is generated from a few lines of math and animated with plain CSS keyframes and SVG.",
+      subtitle: "An experiment with dots and circles",
+      text: "Looping animations made of dots and circles: orbits, ripples, grids and spirals. Each one is a few lines of math, animated with CSS and SVG.",
       // Instead of media: a live collection (js/circles.js). `preview` picks
       // the six shown in the overview frame; the rest open with a click.
       collection: circleAnimations,
