@@ -280,4 +280,5 @@ body[data-view="info"] .nav { display: none; }
   .imprint-label { padding-top: 24px; }
   .imprint { padding-top: 0; }
   .footer { row-gap: 20px; }
+  .footer-right { order: -1; }
 }
