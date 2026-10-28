@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Remon Tewodros — Web Design &amp; Development</title>
+  <meta name="description" content="Remon Tewodros is a freelance web designer and developer based in Berlin.">
+  <meta property="og:title" content="Remon Tewodros — Web Design &amp; Development">
+  <meta property="og:description" content="Freelance web design &amp; development, based in Berlin.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#0000ff">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="images/favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="images/webclip.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/circles.css">
+</head>
+<body data-view="home">
+  <header class="nav row">
+    <a class="nav-link" href="#web" data-link="web"><span class="num">1</span><span>Web Design &amp; Development</span></a>
+    <a class="nav-link" href="#creative" data-link="creative"><span class="num">2</span><span>Creative Coding/Design</span></a>
+  </header>
+
+  <main>
+    <section class="work" hidden>
+      <p class="mono label">Select work</p>
+      <div class="projects"></div>
+    </section>
+
+    <!-- One of these is filled in per project (see js/main.js). -->
+    <template id="project-template">
+      <article class="slider">
+        <div class="slider-head">
+          <h2 class="mono slider-title"></h2>
+          <div class="slider-controls">
+            <button class="arrow" aria-label="Previous slide">&larr;</button>
+            <span class="slider-count" aria-live="polite"></span>
+            <button class="arrow" aria-label="Next slide">&rarr;</button>
+          </div>
+        </div>
+        <figure class="slider-frame">
+          <img class="slider-img" alt="" sizes="(max-width: 760px) 100vw, 48vw">
+          <video class="slider-video" muted loop playsinline autoplay preload="metadata" hidden></video>
+        </figure>
+        <div class="slider-caption" hidden>
+          <p class="mono caption-sub"></p>
+          <p class="caption-text"></p>
+          <a class="caption-link" target="_blank" rel="noopener" hidden>Visit site ↗</a>
+        </div>
+      </article>
+    </template>
+
+    <section class="info row" data-section="information" hidden>
+      <!-- Each entry: year, text, and an optional thumbnail in the third column. -->
+      <dl class="cv">
+        <div><dt>2000</dt><dd>Born<br>Addis Ababa</dd></div>
+        <div><dt>2018–2020</dt><dd>Rome<p>Rome University of<br>Fine Arts (RUFA)</p></dd></div>
+        <div><dt>2020–2024</dt><dd>Hamburg<p>Freelance digital<br>product designer</p></dd></div>
+        <div><dt>2024–2026</dt><dd>San Vincenzo<p>Designer<br><a href="https://getswitch.io" target="_blank" rel="noopener">getswitch.io ↗</a></p></dd></div>
+        <div>
+          <dt>2026</dt>
+          <dd>Berlin<p>Freelance Web Design<br>&amp; Development</p></dd>
+          <img class="cv-thumb" src="images/65f6e0e56a47aad0f7ecc464_Squoosh-Mockup-p-500.jpg" alt="CS Design website on a desktop monitor" loading="lazy">
+        </div>
+        <div>
+          <dt></dt>
+          <dd>Selected work<p><a href="#web">CS Design</a><br><a href="#creative">Match Report (2026)</a></p></dd>
+          <img class="cv-thumb" src="images/match-report-2026-desktop.webp" alt="Match Report desktop view with Norway’s line-up" loading="lazy">
+        </div>
+      </dl>
+      <div class="about">
+        <p>I am a freelance web designer and developer building <b>clean, accessible, and highly functional websites.</b></p>
+        <p><b>Typography and craftsmanship</b> are at the heart of my work, and I’m passionate about fostering collaboration through <b>robust design systems</b> and a culture of constructive feedback.</p>
+        <p>Whether it’s leading design for <b>native apps</b>, creating <b>responsive websites</b>, or building <b>scalable design systems</b>, I thrive on solving tough problems with thoughtful design.</p>
+        <p class="about-contact">Contact<br><a href="mailto:contact@remontewodros.com">contact@remontewodros.com</a></p>
+      </div>
+
+      <!-- Impressum, at the bottom of the info page -->
+      <h2 class="imprint-label" lang="de">Impressum<br>Angaben gemäß § 5 DDG</h2>
+      <div class="imprint" lang="de">
+        <p>Remon Tewodros Asefa<br>Reichenberger Straße 148<br>10999 Berlin<br>Deutschland</p>
+        <p>E-Mail: <a href="mailto:contact@remontewodros.com">contact@remontewodros.com</a><br>Telefon: <a href="tel:+4915510762942">+49 155 10762942</a></p>
+        <p>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV: Remon Tewodros Asefa, Anschrift wie oben</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer row">
+    <div class="sign">
+      <a href="#" class="sign-title">Web Design &amp; Development</a>
+      <span class="sign-name">Remon Tewodros</span>
+    </div>
+    <div class="footer-right">
+      <a class="overlay-link" href="#information" data-overlay="information"><span>Info(&amp;contact)</span><span class="close" aria-hidden="true"></span></a>
+    </div>
+  </footer>
+
+  <script src="js/circles.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

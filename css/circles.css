@@ -1,0 +1,240 @@
+/* Circle Animations Collection (see js/circles.js).
+   Mobile first: base styles are for phones, min-width queries scale up. */
+
+/* Overview: six live animations fill the 3:2 slider frame as a 3×2 grid */
+.slider-frame.is-collection {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 1fr);
+  gap: 1px;
+  background: #fff; /* hairlines between cells */
+  cursor: pointer;
+}
+.is-collection .circle-cell { background: var(--blue); }
+
+.expand {
+  min-height: 44px;
+  margin-block: -12px; /* bigger tap area without moving the title row */
+  font-size: var(--fs-m);
+  transition: opacity 0.2s ease;
+}
+
+/* Full collection, opened below the project */
+.collection {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.collection.is-open { grid-template-rows: 1fr; }
+.collection-inner {
+  min-height: 0;
+  overflow: hidden;
+  /* Room for the corner marks, which sit 8px outside each tile */
+  margin-inline: -8px;
+  padding: 28px 8px 8px;
+}
+.collection:not(.is-open) * { animation-play-state: paused; }
+
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* Tile: title on top, animation, Code bar along the bottom. The whole tile
+   is the tap target; the bar is the visible cue (and the keyboard control). */
+.circle-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 3 / 4;
+  background: var(--blue);
+  color: #fff;
+  cursor: pointer;
+}
+.circle-tile figcaption,
+.tile-code {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.circle-tile figcaption { padding: 10px 10px 0; }
+.tile-code {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding-inline: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  text-align: left;
+  transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+.tile-code::after { content: "</>"; letter-spacing: 0; }
+
+/* Code view: a full-screen sheet on phones, animation above the code */
+.code-view {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--blue);
+  color: #fff;
+  font-size: var(--fs-s);
+}
+.code-view[open] {
+  display: grid;
+  /* minmax(0, …) so long code lines scroll inside .code-pre instead of
+     widening the sheet past the screen */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 32dvh minmax(0, 1fr);
+}
+.code-view:focus { outline: none; }
+.code-view::backdrop { background: rgba(0, 0, 0, 0.6); }
+html:has(.code-view[open]) { overflow: hidden; } /* no page scroll behind it */
+
+.code-stage {
+  display: grid;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.code-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px 16px 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.code-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.code-close,
+.code-tabs button { min-height: 44px; }
+.code-close { padding-inline: 12px; margin-right: -12px; }
+.code-about {
+  margin-top: 4px;
+  max-width: 36em;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+.code-tabs {
+  display: flex;
+  gap: 20px;
+  margin-top: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+.code-tabs [role="tab"] { opacity: 0.6; }
+.code-tabs [aria-selected="true"] { opacity: 1; text-decoration: underline; text-underline-offset: 0.3em; }
+.code-copy { margin-left: auto; }
+
+.code-pre {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  margin: 0 -16px;
+  padding: 12px 16px 24px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.55;
+  letter-spacing: 0;
+  tab-size: 2;
+  /* Wrap long lines on phones rather than scrolling sideways */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Each animation is drawn at 180px and scaled to fit its cell (--s, set in JS) */
+.circle-cell {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+/* Centered absolutely, so it stays centered even when larger than its cell */
+.circle-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 180px;
+  height: 180px;
+  margin: -90px 0 0 -90px;
+  scale: var(--s, 1);
+}
+
+/* Corner marks only where there's hover */
+.corner { display: none; }
+
+@media (min-width: 760px) {
+  .collection-inner { padding-top: clamp(28px, 3vw, 50px); }
+  .collection-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); }
+  .circle-tile { aspect-ratio: 1; }
+  .circle-tile figcaption, .tile-code { font-size: calc(var(--fs-s) * 0.8); }
+  .circle-tile figcaption { padding: 0.9em 0.9em 0; }
+  .tile-code { padding-inline: 0.9em; }
+
+  /* Centered panel: animation on the left, explanation and code on the right */
+  .code-view {
+    width: min(1100px, 100% - 2 * var(--pad));
+    height: min(680px, 100% - 2 * var(--pad));
+    margin: auto;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .code-view[open] {
+    grid-template-rows: none;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+  .code-stage { border-bottom: 0; border-right: 1px solid rgba(255, 255, 255, 0.15); }
+  .code-body { padding: clamp(16px, 2vw, 32px) clamp(16px, 2vw, 32px) 0; }
+  .code-close { margin-right: -12px; }
+  .code-about { margin-top: 0.6em; }
+  .code-tabs { margin-top: 1.2em; }
+  .code-pre { margin-inline: 0; padding-inline: 0; font-size: calc(var(--fs-s) * 0.82); white-space: pre; overflow-wrap: normal; }
+}
+
+@media (min-width: 1100px) {
+  .collection-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (hover: hover) {
+  .expand:hover,
+  .code-close:hover,
+  .code-copy:hover { opacity: 0.6; }
+  .tile-code { opacity: 0.6; }
+  .circle-tile:hover .tile-code,
+  .tile-code:focus-visible { opacity: 1; background: #fff; color: var(--blue); }
+
+  .corner {
+    display: block;
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    color: var(--blue);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .circle-tile:hover .corner { opacity: 1; }
+  .corner svg { display: block; }
+  .corner.top-left { top: -8px; left: -8px; }
+  .corner.top-right { top: -8px; right: -8px; transition-delay: 0.1s; }
+  .corner.bottom-left { bottom: -8px; left: -8px; transition-delay: 0.2s; }
+  .corner.bottom-right { bottom: -8px; right: -8px; transition-delay: 0.3s; }
+}
+
+/* Shared dot; each animation's own CSS lives with its JS in js/circles.js */
+.circle-stage .dot {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+}
