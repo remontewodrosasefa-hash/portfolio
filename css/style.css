@@ -176,6 +176,8 @@ body[data-view="info"] .nav { display: none; }
   font-size: var(--fs-s);
   line-height: 1.5;
 }
+/* Link-only project: caption sits under the title */
+.slider.is-text .slider-caption { grid-column: 1; grid-row: auto; }
 .caption-sub { font-size: inherit; margin-bottom: 0.6em; }
 .caption-link {
   display: inline-block;

@@ -1,11 +1,18 @@
 // Projects per section. Add an entry here to add work to the slider.
 // Each project has one or more media slides: { src, alt, srcset? } for images,
 // { video, alt } for videos, { embed, alt } for a live page in the frame.
+// Leave out `media` for a link-only entry with just the title and caption.
 // `subtitle`, `text` and `url` (live link) are optional.
 // For images that aren't landscape, add fit: "contain" and a `bg` color so the
 // whole image shows inside the frame instead of being cropped.
 const projects = {
   web: [
+    {
+      title: "Datlas (2024–2026)",
+      subtitle: "Role: Freelance web developer",
+      text: "Website for Datlas, an Italian company that runs digital transformation, data centers and operational services for enterprise customers. I worked on the site remotely as a freelance web developer.",
+      url: "https://www.datlas.it/",
+    },
     {
       title: "CS Design",
       subtitle: "Role: Design, development & print",
@@ -141,6 +148,13 @@ function createProject(p) {
   }
   caption.hidden = !p.subtitle && !p.text && !p.url;
   if (p.collection) return setupCollection(el, p);
+  if (!p.media) {
+    // Link-only project: just the title and caption, no frame
+    el.classList.add("is-text");
+    el.querySelector(".slider-controls").remove();
+    frame.remove();
+    return el;
+  }
   prev.disabled = next.disabled = p.media.length < 2;
 
   function show() {
