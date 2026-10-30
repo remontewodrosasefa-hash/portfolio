@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Node Blob</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<script>if (/[?&]embed\b/.test(location.search)) document.documentElement.classList.add('embed');</script>
+<style>
+  :root {
+    --paper: #DADADA;
+    --blush: #F9C6DA;
+    --pink: #FF5CA8;
+    --ink: #111;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: #CFCFCF; color: var(--ink);
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; font-stretch: 125%; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; padding: 20px; min-height: 100vh; }
+
+  .stage { position: relative; width: min(92vmin, 820px); aspect-ratio: 1;
+    background: var(--paper); overflow: hidden; container-type: inline-size;
+    box-shadow: 0 1px 0 #0002, 0 18px 40px -20px #0006; }
+
+  /* poster layers behind the canvas */
+  .layer { position: absolute; pointer-events: none; line-height: .82; }
+  .blush { left: 2.6cqw; top: 2.6cqw; right: 2.6cqw; height: 44cqw; background: var(--blush); }
+  .kicker { left: 4.6cqw; top: 4.4cqw; font-size: 2.1cqw; font-weight: 500; letter-spacing: -.02em; }
+  .big { left: 4cqw; top: 35.5cqw; font-size: 9.6cqw; font-weight: 900; letter-spacing: -.03em; }
+  .stack { right: 4.6cqw; top: 33cqw; font-size: 2.1cqw; font-weight: 500; text-align: right; line-height: .9; }
+  .box { left: 2.6cqw; top: 49cqw; width: 26cqw; height: 13cqw; border: 1.5px solid var(--ink);
+    display: grid; place-items: center; font-size: 6.6cqw; font-weight: 700; letter-spacing: -.02em; }
+  .thin { right: 3.4cqw; top: 48.4cqw; font-size: 19cqw; font-weight: 150; letter-spacing: -.04em; }
+  .bottom { left: 2.6cqw; right: 2.6cqw; bottom: 1.8cqw; font-size: 12.4cqw; font-weight: 250;
+    letter-spacing: -.045em; text-align: center; white-space: nowrap; }
+  .tag { right: 4.2cqw; bottom: 24cqw; font-size: 1.7cqw; font-weight: 600; transform: rotate(-90deg);
+    transform-origin: right bottom; letter-spacing: .08em; }
+
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+
+  .bar { width: min(92vmin, 820px); display: flex; flex-wrap: wrap; gap: 12px 14px; align-items: center; }
+  .pill { font: inherit; font-stretch: 125%; font-size: 15px; font-weight: 500; letter-spacing: -.01em;
+    border: 1.5px solid var(--ink); border-radius: 50%; padding: 10px 22px;
+    background: transparent; color: var(--ink); cursor: pointer; transition: background .15s, transform .15s; }
+  .pill:hover { transform: rotate(-3deg); }
+  .pill.on { background: var(--pink); }
+  .pill.blush-on.on { background: var(--blush); }
+  label.slider { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 500;
+    border: 1.5px solid var(--ink); border-radius: 50%; padding: 10px 22px; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 130px; height: 1.5px; background: var(--ink); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 14px; border-radius: 50%;
+    background: var(--pink); border: 1.5px solid var(--ink); cursor: pointer; }
+  input[type=range]::-moz-range-thumb { width: 20px; height: 12px; border-radius: 50%;
+    background: var(--pink); border: 1.5px solid var(--ink); cursor: pointer; }
+  .help { width: min(92vmin, 820px); font-size: 12px; font-weight: 400; line-height: 1.7; opacity: .75; }
+
+  /* ?embed: just the poster, for the portfolio slider */
+  .embed body { padding: 0; }
+  .embed .stage { box-shadow: none; }
+  .embed .bar, .embed .help { display: none; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="layer blush"></div>
+    <div class="layer kicker">SHAPE IS A CONVERSATION</div>
+    <div class="layer big">BLOB</div>
+    <div class="layer stack">NEW<br>FORM<br>OF<br>TOGETHER</div>
+    <div class="layer box">NODE</div>
+    <div class="layer thin">SOFT</div>
+    <div class="layer bottom">CONNECTION</div>
+    <div class="layer tag">DRAG &middot; GROW &middot; JOIN</div>
+    <canvas id="c"></canvas>
+  </div>
+
+  <div class="bar">
+    <label class="slider">SMOOTH <input type="range" id="smooth" min="0" max="160" value="70"></label>
+    <button class="pill" id="viewBtn">FIELD</button>
+    <button class="pill blush-on on" id="animBtn">ANIMATE</button>
+    <button class="pill" id="resetBtn">RESET</button>
+  </div>
+  <div class="help">
+    Drag a node to move it &middot; drag its outline or scroll over it to resize &middot;
+    double-click empty space to add a node &middot; double-click a node to remove it
+  </div>
+
+<script>
+(() => {
+  const SIZE = 820;
+  const STEP = 5;
+  const MIN_R = 12, MAX_R = 260;
+  const INK = '#111', PINK = '#FF5CA8';
+  const FONT_STACK = '"Archivo", "Helvetica Neue", Arial, sans-serif';
+
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const viewBtn = document.getElementById('viewBtn');
+  const smoothIn = document.getElementById('smooth');
+  const animBtn = document.getElementById('animBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const INITIAL = [
+    { x: 250, y: 255, r: 42 },
+    { x: 560, y: 300, r: 32 },
+    { x: 450, y: 545, r: 175 },
+    { x: 680, y: 715, r: 50 },
+  ];
+  let nodes = [];
+  function reset() {
+    nodes = INITIAL.map((n, i) => ({ ...n, bx: n.x, by: n.y, ph: i * 1.7 }));
+  }
+  reset();
+
+  let showField = false;
+  let animate = true;
+  let drag = null;
+
+  const fill = document.createElement('canvas');
+  const fctx = fill.getContext('2d');
+  const tmp = document.createElement('canvas');
+  const tctx = tmp.getContext('2d');
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.round(canvas.clientWidth * dpr);
+    for (const c of [canvas, fill, tmp]) { c.width = w; c.height = w; }
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ---------- field ----------
+  // Shape = union of the circles + a "neck" between each pair of circles that are close.
+  // A neck is bounded by two fillet circles (radius f) that touch both node circles,
+  // so the outline follows each circle exactly and bends into it smoothly.
+  let necks = [];
+
+  function buildNecks(f) {
+    necks = [];
+    if (f <= 0) return;
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const A = nodes[i], B = nodes[j];
+        const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy);
+        const a = A.r + f, b = B.r + f;
+        if (d >= a + b || d <= Math.abs(A.r - B.r) + 1) continue; // too far apart, or one inside the other
+        const ux = dx / d, uy = dy / d, vx = -uy, vy = ux;
+        const x = (a * a - b * b + d * d) / (2 * d);
+        const h = Math.sqrt(Math.max(a * a - x * x, 0));
+        const fil = [1, -1].map(s => ({ x: A.x + ux * x + vx * h * s, y: A.y + uy * x + vy * h * s }));
+        const tA = F => [A.x + (F.x - A.x) * A.r / a, A.y + (F.y - A.y) * A.r / a];
+        const tB = F => [B.x + (F.x - B.x) * B.r / b, B.y + (F.y - B.y) * B.r / b];
+        const poly = [[A.x, A.y], tA(fil[0]), tB(fil[0]), [B.x, B.y], tB(fil[1]), tA(fil[1])];
+        necks.push({ poly, fil, f });
+      }
+    }
+  }
+
+  // signed distance to a polygon (negative inside)
+  function polySD(px, py, v) {
+    let d = Infinity, inside = false;
+    for (let i = 0, j = v.length - 1; i < v.length; j = i++) {
+      const [x1, y1] = v[j], [x2, y2] = v[i];
+      const ex = x2 - x1, ey = y2 - y1, wx = px - x1, wy = py - y1;
+      const t = Math.max(0, Math.min(1, (wx * ex + wy * ey) / (ex * ex + ey * ey || 1)));
+      d = Math.min(d, Math.hypot(wx - ex * t, wy - ey * t));
+      if ((y1 > py) !== (y2 > py) && px < x1 + (py - y1) * ex / (ey || 1e-9)) inside = !inside;
+    }
+    return inside ? -d : d;
+  }
+
+  function field(x, y) {
+    let d = Infinity;
+    for (const n of nodes) d = Math.min(d, Math.hypot(x - n.x, y - n.y) - n.r);
+    for (const k of necks) {
+      let nd = polySD(x, y, k.poly);
+      for (const F of k.fil) nd = Math.max(nd, k.f - Math.hypot(x - F.x, y - F.y));
+      d = Math.min(d, nd);
+    }
+    return d;
+  }
+
+  // ---------- marching squares ----------
+  const cols = Math.ceil(SIZE / STEP) + 1;
+  const vals = new Float32Array(cols * cols);
+
+  function sample() {
+    for (let j = 0; j < cols; j++)
+      for (let i = 0; i < cols; i++)
+        vals[j * cols + i] = field(i * STEP, j * STEP);
+  }
+
+  function contour(level) {
+    const path = new Path2D();
+    const lerp = (a, b) => (level - a) / (b - a);
+    for (let j = 0; j < cols - 1; j++) {
+      for (let i = 0; i < cols - 1; i++) {
+        const a = vals[j * cols + i], b = vals[j * cols + i + 1];
+        const c = vals[(j + 1) * cols + i + 1], d = vals[(j + 1) * cols + i];
+        const idx = (a > level ? 8 : 0) | (b > level ? 4 : 0) | (c > level ? 2 : 0) | (d > level ? 1 : 0);
+        if (idx === 0 || idx === 15) continue;
+        const x = i * STEP, y = j * STEP;
+        const T = [x + STEP * lerp(a, b), y];
+        const R = [x + STEP, y + STEP * lerp(b, c)];
+        const B = [x + STEP * lerp(d, c), y + STEP];
+        const L = [x, y + STEP * lerp(a, d)];
+        const seg = (p, q) => { path.moveTo(p[0], p[1]); path.lineTo(q[0], q[1]); };
+        switch (idx) {
+          case 1: case 14: seg(L, B); break;
+          case 2: case 13: seg(B, R); break;
+          case 3: case 12: seg(L, R); break;
+          case 4: case 11: seg(T, R); break;
+          case 6: case 9:  seg(T, B); break;
+          case 7: case 8:  seg(L, T); break;
+          case 5:  seg(L, T); seg(B, R); break;
+          case 10: seg(T, R); seg(L, B); break;
+        }
+      }
+    }
+    return path;
+  }
+
+  // ---------- drawing ----------
+  const label = i => (i % 2 === 0 ? 'ME' : 'YOU');
+
+  // ellipse that sits around each node's label
+  function ellipseFor(n, i) {
+    const size = Math.max(22, Math.min(64, n.r * 0.42));
+    ctx.font = `300 ${size}px ${FONT_STACK}`;
+    const w = ctx.measureText(label(i)).width;
+    return { size, a: w / 2 + size * 0.75, b: size * 0.95 };
+  }
+
+  // point where a line from the node centre toward (tx,ty) leaves the ellipse
+  function edgePoint(n, e, tx, ty) {
+    const dx = tx - n.x, dy = ty - n.y;
+    const t = 1 / Math.sqrt((dx / e.a) ** 2 + (dy / e.b) ** 2 || 1);
+    return [n.x + dx * Math.min(t, 1), n.y + dy * Math.min(t, 1)];
+  }
+
+  // pink fill of the shape: circles + necks (each neck = polygon minus its two fillet discs)
+  function drawFill(scale) {
+    fctx.setTransform(1, 0, 0, 1, 0, 0);
+    fctx.clearRect(0, 0, fill.width, fill.height);
+    fctx.setTransform(scale, 0, 0, scale, 0, 0);
+    fctx.fillStyle = PINK;
+    for (const k of necks) {
+      tctx.setTransform(1, 0, 0, 1, 0, 0);
+      tctx.globalCompositeOperation = 'source-over';
+      tctx.clearRect(0, 0, tmp.width, tmp.height);
+      tctx.setTransform(scale, 0, 0, scale, 0, 0);
+      tctx.fillStyle = PINK;
+      tctx.beginPath();
+      k.poly.forEach(([x, y], i) => (i ? tctx.lineTo(x, y) : tctx.moveTo(x, y)));
+      tctx.fill();
+      tctx.globalCompositeOperation = 'destination-out';
+      for (const F of k.fil) { tctx.beginPath(); tctx.arc(F.x, F.y, k.f, 0, Math.PI * 2); tctx.fill(); }
+      fctx.setTransform(1, 0, 0, 1, 0, 0);
+      fctx.drawImage(tmp, 0, 0);
+      fctx.setTransform(scale, 0, 0, scale, 0, 0);
+    }
+    for (const n of nodes) { fctx.beginPath(); fctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); fctx.fill(); }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(fill, 0, 0);
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  }
+
+  function drawNetwork() {
+    const ell = nodes.map(ellipseFor);
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.5;
+
+    // thin chain of lines: off the top edge -> node 1 -> node 2 -> ... -> off the bottom edge
+    ctx.beginPath();
+    if (nodes.length) {
+      const f = nodes[0], fe = ell[0];
+      const p = edgePoint(f, fe, f.x + 150, -40);
+      ctx.moveTo(f.x + 150, -40);
+      ctx.lineTo(p[0], p[1]);
+      const l = nodes[nodes.length - 1], le = ell[nodes.length - 1];
+      const q = edgePoint(l, le, l.x - 90, SIZE + 40);
+      ctx.moveTo(q[0], q[1]);
+      ctx.lineTo(l.x - 90, SIZE + 40);
+    }
+    for (let i = 0; i < nodes.length - 1; i++) {
+      const A = nodes[i], B = nodes[i + 1];
+      const p = edgePoint(A, ell[i], B.x, B.y), q = edgePoint(B, ell[i + 1], A.x, A.y);
+      ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]);
+    }
+    ctx.stroke();
+
+    // ellipses + labels
+    nodes.forEach((n, i) => {
+      const e = ell[i];
+      ctx.beginPath();
+      ctx.ellipse(n.x, n.y, e.a, e.b, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = INK;
+      ctx.font = `300 ${e.size}px ${FONT_STACK}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label(i), n.x, n.y + e.size * 0.04);
+    });
+  }
+
+  function render(t) {
+    if (animate) {
+      for (const n of nodes) {
+        if (drag && drag.node === n) continue;
+        n.x = n.bx + Math.sin(t / 1400 + n.ph) * 10;
+        n.y = n.by + Math.cos(t / 1700 + n.ph * 1.3) * 10;
+      }
+    }
+
+    const scale = canvas.width / SIZE;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    try { ctx.fontStretch = 'expanded'; } catch (e) {}
+
+    buildNecks(+smoothIn.value);
+    sample();
+    drawFill(scale);
+
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    if (showField) {
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 0.9;
+      ctx.globalAlpha = 0.45;
+      for (let lv = -160; lv <= 200; lv += 20) if (lv) ctx.stroke(contour(lv));
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2;
+    ctx.stroke(contour(0));
+
+    drawNetwork();
+    requestAnimationFrame(render);
+  }
+
+  // ---------- interaction ----------
+  function toLocal(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * SIZE / r.width, y: (e.clientY - r.top) * SIZE / r.height };
+  }
+  function hit(p) {
+    let best = null;
+    for (const n of nodes) {
+      const d = Math.hypot(p.x - n.x, p.y - n.y);
+      if (Math.abs(d - n.r) < 8) return { node: n, mode: 'resize' };
+      if (d < n.r && (!best || n.r < best.node.r)) best = { node: n, mode: 'move' };
+    }
+    return best;
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    const p = toLocal(e);
+    const h = hit(p);
+    if (!h) return;
+    drag = { ...h, dx: h.node.x - p.x, dy: h.node.y - p.y };
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', e => {
+    const p = toLocal(e);
+    if (drag) {
+      const n = drag.node;
+      if (drag.mode === 'move') {
+        n.x = Math.max(0, Math.min(SIZE, p.x + drag.dx));
+        n.y = Math.max(0, Math.min(SIZE, p.y + drag.dy));
+        n.bx = n.x; n.by = n.y;
+      } else {
+        n.r = Math.max(MIN_R, Math.min(MAX_R, Math.hypot(p.x - n.x, p.y - n.y)));
+      }
+      return;
+    }
+    const h = hit(p);
+    canvas.style.cursor = !h ? 'crosshair' : h.mode === 'resize' ? 'ew-resize' : 'grab';
+  });
+  const endDrag = () => { drag = null; };
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+
+  canvas.addEventListener('dblclick', e => {
+    const p = toLocal(e);
+    const h = hit(p);
+    if (h) {
+      if (nodes.length > 1) nodes.splice(nodes.indexOf(h.node), 1);
+    } else {
+      nodes.push({ x: p.x, y: p.y, bx: p.x, by: p.y, r: 40, ph: Math.random() * 6.28 });
+    }
+  });
+
+  canvas.addEventListener('wheel', e => {
+    const h = hit(toLocal(e));
+    if (!h) return;
+    e.preventDefault();
+    h.node.r = Math.max(MIN_R, Math.min(MAX_R, h.node.r - e.deltaY * 0.08));
+  }, { passive: false });
+
+  viewBtn.addEventListener('click', () => {
+    showField = !showField;
+    viewBtn.classList.toggle('on', showField);
+  });
+  animBtn.addEventListener('click', () => {
+    animate = !animate;
+    animBtn.classList.toggle('on', animate);
+    if (!animate) for (const n of nodes) { n.bx = n.x; n.by = n.y; }
+  });
+  resetBtn.addEventListener('click', reset);
+
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => requestAnimationFrame(render));
+})();
+</script>
+</body>
+</html>

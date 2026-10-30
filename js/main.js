@@ -1,6 +1,7 @@
 // Projects per section. Add an entry here to add work to the slider.
 // Each project has one or more media slides: { src, alt, srcset? } for images,
-// { video, alt } for videos. `subtitle`, `text` and `url` (live link) are optional.
+// { video, alt } for videos, { embed, alt } for a live page in the frame.
+// `subtitle`, `text` and `url` (live link) are optional.
 // For images that aren't landscape, add fit: "contain" and a `bg` color so the
 // whole image shows inside the frame instead of being cropped.
 const projects = {
@@ -31,22 +32,6 @@ const projects = {
       ],
     },
     {
-      title: "Switch",
-      url: "https://getswitch.io/",
-      media: [
-        { src: "images/switch-01-hero.webp", alt: "Switch website hero: dotted SWITCH logotype beside a black-and-white photo of London" },
-        { src: "images/switch-02-features.webp", alt: "Switch features section: five dot-matrix icons explaining how the platform works" },
-        { src: "images/switch-03-mobile.webp", alt: "Switch website on three phones" },
-        { src: "images/switch-04-cities.webp", alt: "Switch “What are we doing in” section with a list of cities and a photo of New York" },
-        { src: "images/switch-05-blog.webp", alt: "Switch blog page with a red city map and dotted BLOG lettering" },
-        { src: "images/switch-06-screens.webp", alt: "Three Switch website sections in red and black", fit: "contain", bg: "#aba19b" },
-        { src: "images/switch-07-palette.webp", alt: "Switch color palette: bright red, off white, light grey, warm grey and black" },
-        { src: "images/switch-08-stationery.webp", alt: "Switch letterhead and business cards in red" },
-        { src: "images/switch-09-poster.webp", alt: "Red Switch poster for Berkeley SkyDeck Europe Demo Day with large black dots", fit: "contain", bg: "#1c1918" },
-        { src: "images/switch-10-stickers.webp", alt: "Switch printed strips with dot-matrix patterns on black", fit: "contain", bg: "#000" },
-      ],
-    },
-    {
       title: "set architects",
       subtitle: "Role: Freelance web developer",
       text: "Website for set architects, an architecture studio based in Rome. I worked on the project as a freelance web developer.",
@@ -59,6 +44,18 @@ const projects = {
         { src: "images/set-architects-05-drawings-detail.webp", alt: "set architects drawings view: floor plans of House with a square window", fit: "contain", bg: "#fff" },
         { src: "images/set-architects-06-press.webp", alt: "set architects press page: list of publications by date, issue and type", fit: "contain", bg: "#fff" },
         { src: "images/set-architects-07-contact.webp", alt: "set architects contact page with address, email and applications", fit: "contain", bg: "#fff" },
+      ],
+    },
+    {
+      title: "Skinskapes",
+      subtitle: "Online shop for a streetwear label",
+      url: "https://skinskapes.webflow.io/",
+      text: "Online shop for Skinskapes, a unisex streetwear label with hand-sprayed graffiti pieces. Big right-aligned type, numbered lookbook slides and a product grid that switches to dark for the Blood Age 2024 collection.",
+      media: [
+        { src: "images/skinskapes-01-hero.webp", alt: "Skinskapes home page: lookbook photo numbered 01 beside large “Skinskapes street style unisex clothing” type", fit: "contain", bg: "#ebebeb" },
+        { src: "images/skinskapes-02-lookbook.webp", alt: "Skinskapes lookbook slide 03: model on an escalator next to “Leather fiti coat, flared reverse fiti pants” in black and orange type", fit: "contain", bg: "#ebebeb" },
+        { src: "images/skinskapes-03-shop-all.webp", alt: "Skinskapes “Blood Age 2024” collection page on black with a row of graffiti-sprayed caps and T-shirts", fit: "contain", bg: "#1c1c1c" },
+        { src: "images/skinskapes-04-shop-grid.webp", alt: "Skinskapes product grid on black: fiti white tee, baggy denim fiti pants and icicle cap with names and prices in yen", fit: "contain", bg: "#1c1c1c" },
       ],
     },
   ],
@@ -93,6 +90,19 @@ const projects = {
       collection: circleAnimations,
       preview: [3, 1, 7, 11, 9, 5],
     },
+    {
+      title: "Node Blob",
+      subtitle: "Interactive poster",
+      url: "lab/node-blob/",
+      text: "A poster where the nodes of a network melt into one soft shape. Drag a node to move it, drag its outline or scroll to resize it, and double-click to add or remove one. The outline is drawn from a distance field with marching squares, in plain JavaScript and canvas.",
+      media: [{ embed: "lab/node-blob/?embed", alt: "Node Blob, a live interactive poster: pink blobs labelled ME and YOU join into one shape over grey and blush-pink type", bg: "#cfcfcf" }],
+    },
+    {
+      title: "Object Shapes",
+      subtitle: "Shape animation",
+      text: "Black silhouettes of everyday objects morphing into each other on blue: a flower pot, a bottle, a plug, a flask, a carrot and a glass.",
+      media: [{ video: "images/object-shapes.mp4", alt: "Black silhouettes of everyday objects morphing into one another on a blue background" }],
+    },
   ],
 };
 
@@ -114,6 +124,7 @@ function createProject(p) {
   const el = template.content.firstElementChild.cloneNode(true);
   const img = el.querySelector(".slider-img");
   const video = el.querySelector(".slider-video");
+  const embed = el.querySelector(".slider-embed");
   const frame = el.querySelector(".slider-frame");
   const count = el.querySelector(".slider-count");
   const [prev, next] = el.querySelectorAll(".arrow");
@@ -135,23 +146,35 @@ function createProject(p) {
   function show() {
     const s = p.media[i];
     count.textContent = `${i + 1}/${p.media.length}`;
-    img.hidden = !!s.video;
+    img.hidden = !!(s.video || s.embed);
     video.hidden = !s.video;
+    embed.hidden = !s.embed;
     img.style.objectFit = s.fit || "";
     frame.style.background = s.bg || "";
 
-    if (s.video) {
+    // Only the visible slide keeps a page or video running
+    if (!s.embed) embed.removeAttribute("src");
+    if (!s.video && video.hasAttribute("src")) {
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+    }
+
+    if (s.video || s.embed) {
       img.removeAttribute("src");
       img.removeAttribute("srcset");
+    }
+    if (s.embed) {
+      if (!embed.src.endsWith(s.embed)) embed.src = s.embed;
+      embed.title = s.alt;
+      return;
+    }
+    if (s.video) {
       if (!video.src.endsWith(s.video)) video.src = s.video;
       video.setAttribute("aria-label", s.alt);
       video.play().catch(() => {});
       return;
     }
-
-    video.pause();
-    video.removeAttribute("src");
-    video.load();
 
     img.classList.add("is-loading");
     img.onload = () => img.classList.remove("is-loading");

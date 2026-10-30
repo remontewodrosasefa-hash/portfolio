@@ -156,6 +156,17 @@ body[data-view="info"] .nav { display: none; }
   transition: opacity 0.25s ease;
 }
 .slider-img.is-loading { opacity: 0; }
+.slider-embed {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+/* On touch screens the embed would swallow page scrolling; it plays as a
+   preview there and the live link opens the interactive version. */
+@media (hover: none) {
+  .slider-embed { pointer-events: none; }
+}
 
 .slider-caption {
   grid-column: 2;
